@@ -4,6 +4,7 @@ require "sinatra/cross_origin"
 
 
 
+### ALL ABOUT ADDRESS:PORT CONNECTION ###
 configure { enable :cross_origin }
 
 ALLOWED_ORIGINS = ["http://localhost:5173"] # @ telmo - for VITE
@@ -21,12 +22,11 @@ options "*" do
 end
 
 
-=begin
+### ALL ABOUT DATABASES ###
 set :database, {
   adapter: "sqlite3",
-  database: "./db/development.sqlite3"
+  database: "./db/running_records.sqlite3"
 }
-=end
 
 
 
