@@ -65,25 +65,18 @@ post '/add_run' do
 end
 
 get '/check_run' do
-  begin
-    date, location = get_parameters()
-    error_on_missing_parameters(
-      {
-        date:     date,
-        location: location
-      },
-      'Missing GET Parameters'
-    )
-    record = RunningRecord.where(date: date, location: location).first
-    content_type :json
-    status 200
-    record ? [record].to_json : {}.to_json
-
-  rescue => e
-    status 500
-    content_type :json
-    { error: "Internal Server Error: #{e.message}" }.to_json
-  end
+  date, location = get_parameters()
+  error_on_missing_parameters(
+    {
+      date:     date,
+      location: location
+    },
+    'Missing GET Parameters'
+  )
+  records = RunningRecord.where(date: date, location: location).to_a
+  content_type :json
+  status 200
+  records.empty? ? {}.to_json : records.to_json
 end
 
 def post_parameters()
