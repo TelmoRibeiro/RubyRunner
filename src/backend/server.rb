@@ -17,12 +17,12 @@ before do
       { 'Content-Type' => 'application/json' },
       { error: 'CORS Forbidden' }.to_json
   end
-  response.headers["Access-Control-Allow-Origin"] = origin
-  # response.headers['Access-Control-Allow-Origin'] = '*' # @ telmo - for testing with 'curl'
+  headers 'Access-Control-Allow-Origin'  => origin,
+          'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers' => 'Content-Type'
 end
 
 options '*' do
-  response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
   200
 end
 
@@ -50,7 +50,7 @@ post '/add_run' do
   start_time, end_time = parse_times(start_time, end_time)
   duration = (end_time - start_time).to_i
   pace     = (duration / distance.to_f).round
-  RunningRecord.create(
+  record = RunningRecord.create(
     distance:   distance.to_f,
     start_time: start_time.strftime('%H:%M:%S'),
     end_time:   end_time.strftime('%H:%M:%S'),
@@ -61,7 +61,7 @@ post '/add_run' do
   )
   content_type :json
   status 200
-  { message: 'Run Added Successfully' }.to_json
+  [record].to_json
 end
 
 get '/check_run' do
