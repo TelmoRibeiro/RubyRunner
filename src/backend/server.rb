@@ -32,8 +32,17 @@ set :database, {
 
 
 post '/add_run' do
-  distance, start_time, end_time, date, location = get_parameters()
-  error_on_missing_parameters(distance, start_time, end_time, date, location)
+  distance, start_time, end_time, date, location = post_parameters()
+  error_on_missing_parameters(
+    {
+      distance:   distance,
+      start_time: start_time,
+      end_time:   end_time,
+      date:       date,
+      location:   location
+    },
+    'Missing POST Parameters'
+  )
   start_time, end_time = parse_times(start_time, end_time)
   duration = (end_time - start_time).to_i
   pace     = (duration / distance.to_f).round
@@ -51,7 +60,29 @@ post '/add_run' do
   { message: 'Run Added Successfully' }.to_json
 end
 
-def get_parameters()
+get '/check_run' do
+  begin
+    date, location = get_parameters()
+    error_on_missing_parameters(
+      {
+        date:     date,
+        location: location
+      },
+      'Missing GET Parameters'
+    )
+    record = RunningRecord.where(date: date, location: location).first
+    content_type :json
+    status 200
+    record ? [record].to_json : {}.to_json
+
+  rescue => e
+    status 500
+    content_type :json
+    { error: "Internal Server Error: #{e.message}" }.to_json
+  end
+end
+
+def post_parameters()
   request.body.rewind
   begin
     payload = JSON.parse(request.body.read)
@@ -68,17 +99,21 @@ def get_parameters()
   [distance, start_time, end_time, date, location]
 end
 
-def error_on_missing_parameters(distance, start_time, end_time, date, location)
+def get_parameters()
+  date     = params['date']
+  location = params['location']
+  [date, location] 
+end
+
+def error_on_missing_parameters(labeled_parameters, error_prefix = "Missing Parameters")
   missing_parameters = []
-  missing_parameters << 'distance'   if distance.nil?
-  missing_parameters << 'start_time' if start_time.nil?
-  missing_parameters << 'end_time'   if end_time.nil?
-  missing_parameters << 'date'       if date.nil?
-  missing_parameters << 'location'   if location.nil?
+  labeled_parameters.each do |label, parameter|
+    missing_parameters << label if parameter.nil? || parameter.to_s.strip.empty?
+  end
   unless missing_parameters.empty?
     halt 400,
       { 'Content-Type' => 'application/json' },
-      { error: "Missing Parameters: #{missing_parameters.join(', ')}" }.to_json
+      { error: "#{error_prefix}: #{missing_parameters.join(', ')}" }.to_json
   end
 end
 
