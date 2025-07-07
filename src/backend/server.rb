@@ -8,13 +8,17 @@ require './models/running_record'
 ### ALL ABOUT ADDRESS:PORT CONNECTION ###
 configure { enable :cross_origin }
 
-ALLOWED_ORIGINS = ['http://localhost:5173'] # @ telmo - for VITE
+ALLOWED_ORIGINS = ['http://localhost:5173'] # address:port for 'VITE'
 
 before do
-  #origin = request.env["HTTP_ORIGIN"]
-  #halt 404, "CROS Forbiden" unless ALLOWED_ORIGINS.include?(origin)
-  #response.headers["Access-Control-Allow-Origin"] = origin
-  response.headers['Access-Control-Allow-Origin'] = '*' # @ telmo - for testing with 'curl'
+  origin = request.env['HTTP_ORIGIN']
+  unless ALLOWED_ORIGINS.include?(origin)
+    halt 404,
+      { 'Content-Type' => 'application/json' },
+      { error: 'CORS Forbidden' }.to_json
+  end
+  response.headers["Access-Control-Allow-Origin"] = origin
+  # response.headers['Access-Control-Allow-Origin'] = '*' # @ telmo - for testing with 'curl'
 end
 
 options '*' do
