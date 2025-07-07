@@ -57,7 +57,7 @@ post '/add_run' do
     duration:   duration,
     pace:       pace,
     date:       date,
-    location:   location
+    location:   location.downcase
   )
   content_type :json
   status 200
@@ -73,7 +73,7 @@ get '/check_run' do
     },
     'Missing GET Parameters'
   )
-  records = RunningRecord.where(date: date, location: location).to_a
+  records = RunningRecord.where(date: date, location: location.downcase).to_a
   content_type :json
   status 200
   records.empty? ? {}.to_json : records.to_json
