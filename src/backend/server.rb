@@ -2,6 +2,7 @@ require 'sinatra'
 require 'sinatra/activerecord'
 require 'sinatra/cross_origin'
 require 'json'
+require './models/running_record'
 
 
 ### ALL ABOUT ADDRESS:PORT CONNECTION ###
@@ -33,12 +34,21 @@ set :database, {
 post '/add_run' do
   distance, start_time, end_time, date, location = get_parameters()
   error_on_missing_parameters(distance, start_time, end_time, date, location)
-
-  # puts "d: #{distance}\nst: #{start_time}\net: #{end_time}\ndt: #{date}\nl: #{location}" # @ telmo - just for testing
-
+  start_time, end_time = parse_times(start_time, end_time)
+  duration = (end_time - start_time).to_i
+  pace     = (duration / distance.to_f).round
+  RunningRecord.create(
+    distance:   distance.to_f,
+    start_time: start_time.strftime('%H:%M:%S'),
+    end_time:   end_time.strftime('%H:%M:%S'),
+    duration:   duration,
+    pace:       pace,
+    date:       date,
+    location:   location
+  )
   content_type :json
   status 200
-  { message: 'Run Added Sucessfully' }.to_json
+  { message: 'Run Added Successfully' }.to_json
 end
 
 def get_parameters()
@@ -70,4 +80,21 @@ def error_on_missing_parameters(distance, start_time, end_time, date, location)
       { 'Content-Type' => 'application/json' },
       { error: "Missing Parameters: #{missing_parameters.join(', ')}" }.to_json
   end
+end
+
+def parse_times(start_time, end_time)
+  begin
+    parsed_start_time = Time.parse(start_time)
+    parsed_end_time   = Time.parse(end_time)
+    if parsed_start_time > parsed_end_time
+      halt 400,
+        { 'Content-Type' => 'application/json' },
+        { error: 'start_time after the end_time? you a time traveler man?' }.to_json
+    end
+  rescue ArgumentError
+    halt 400,
+      { 'Content-Type' => 'application/json' },
+      { error: 'Unexpected Time Format' }.to_json
+  end
+  [parsed_start_time, parsed_end_time]
 end

@@ -44,6 +44,8 @@ GEM
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
+    rackup (2.2.1)
+      rack (>= 3)
     rake (13.3.0)
     ruby2_keywords (0.0.5)
     securerandom (0.4.1)
@@ -73,6 +75,7 @@ DEPENDENCIES
   activesupport (~> 7.1)
   json
   puma
+  rackup
   rake
   sinatra
   sinatra-activerecord
