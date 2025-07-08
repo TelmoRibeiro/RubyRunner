@@ -1,22 +1,25 @@
 import { useState } from 'react'
 
 function App() {
-  const [distance,   setDistance]  = useState(0);
-  const [start_time, setStartTime] = useState('');
-  const [end_time,   setEndTime]   = useState('');
-  const [date,       setDate]      = useState('');
-  const [location,   setLocation]  = useState('');
-  const [records,    setRecords]   = useState([]);
-  const [isLoading,  setIsLoading] = useState(false);
-  const [error,      setError]     = useState('');
+  const [distance,     setDistance]     = useState(0);
+  const [start_time,   setStartTime]    = useState('');
+  const [end_time,     setEndTime]      = useState('');
+  const [date,         setDate]         = useState('');
+  const [getLocation,  setGetLocation]  = useState('');
+  const [postLocation, setPostLocation] = useState('');
+  const [start_date,   setStartDate]    = useState('');
+  const [end_date,     setEndDate]      = useState('');
+  const [records,      setRecords]      = useState([]);
+  const [isLoading,    setIsLoading]    = useState(false);
+  const [error,        setError]        = useState(''); 
 
   const handleGetSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
     try {
-      const parameters = new URLSearchParams({ date: date, location: location });
-      const response = await fetch(`http://localhost:4567/check_run?${parameters}`);
+      const parameters = new URLSearchParams({ location: getLocation, start_date: start_date, end_date: end_date});
+      const response   = await fetch(`http://localhost:4567/check_run?${parameters}`);
       if (!response.ok) {
         const errorMessage = await response.json();
         throw new Error(errorMessage.error || 'Could not resolve the error message' + response.status);
@@ -27,6 +30,9 @@ function App() {
       setError(err.message);
       setRecords([]);
     } finally {
+      setGetLocation('');
+      setStartDate('');
+      setEndDate('');
       setIsLoading(false);
     }
   };
@@ -46,7 +52,7 @@ function App() {
           start_time: start_time,
           end_time:   end_time,
           date:       date,
-          location:   location,
+          location:   postLocation,
         })
       });
       if (!response.ok) {
@@ -57,8 +63,12 @@ function App() {
     } catch (err) {
       setError(err.message);
     } finally {
+      setDistance(0),
+      setStartTime('');
+      setEndTime('');
+      setDate('');
+      setPostLocation('');
       setIsLoading(false);
-      set
     }
   };
 
@@ -67,20 +77,24 @@ function App() {
       <h1>Ruby Runner</h1>
 
       <form onSubmit={handleGetSubmit}>
-        <label style={{ marginRight:'1rem' }}>Distance</label>
+        <label style={{ marginRight:'1rem' }}>Location</label>
         <input
           type='text'
           placeholder='location'
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          required
+          value={getLocation}
+          onChange={(e) => setGetLocation(e.target.value)}
         />
-        <label style={{ marginLeft:'1rem', marginRight:'1rem' }}>Date</label>
+        <label style={{ marginLeft:'1rem', marginRight:'1rem' }}>Start Date</label>
         <input
           type='date'
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
+          value={start_date}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+        <label style={{ marginLeft:'1rem', marginRight:'1rem' }}>End Date</label>
+        <input
+          type='date'
+          value={end_date}
+          onChange={(e) => setEndDate(e.target.value)}
         />
         <button type='submit' style={{ marginLeft:'1rem' }}>Check Run</button>
       </form>
@@ -124,8 +138,8 @@ function App() {
           aria-label='Location'
           type='text'
           placeholder='location'
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
+          value={postLocation}
+          onChange={(e) => setPostLocation(e.target.value)}
           required
         />
         <button type='submit' style={{ marginLeft:'1rem' }}>Add Run</button>

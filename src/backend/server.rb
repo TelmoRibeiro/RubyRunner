@@ -65,15 +65,18 @@ post '/add_run' do
 end
 
 get '/check_run' do
-  date, location = get_parameters()
-  error_on_missing_parameters(
-    {
-      date:     date,
-      location: location
-    },
-    'Missing GET Parameters'
-  )
-  records = RunningRecord.where(date: date, location: location.downcase).to_a
+  location, start_date, end_date = get_parameters()
+  if location.nil? && start_date.nil? && end_date.nil?
+    halt 400,
+    { 'Content-Type' => 'application/json' },
+    { error: "Missing GET Parameters: either [location], [start_date], or [end_date] must be supplied" }.to_json
+  end
+  end_date ||= start_date
+  start_date ||= end_date
+  conditions = {}
+  conditions[:location] = location.downcase if location
+  conditions[:date] = start_date..end_date  if start_date
+  records = RunningRecord.where(conditions).to_a
   content_type :json
   status 200
   records.empty? ? {}.to_json : records.to_json
@@ -85,7 +88,7 @@ def post_parameters()
     payload = JSON.parse(request.body.read)
   rescue JSON::ParserError => error
     halt 400,
-      { 'Content-Type' => 'application/json'},
+      { 'Content-Type' => 'application/json' },
       { error: "Invalid JSON: #{error.message}" }.to_json
   end
   distance   = payload['distance']
@@ -97,9 +100,10 @@ def post_parameters()
 end
 
 def get_parameters()
-  date     = params['date']
-  location = params['location']
-  [date, location] 
+  location   = params['location']
+  start_date = params['start_date']
+  end_date   = params['end_date']
+  [location, start_date, end_date].map { |p| (p.nil? || p.strip.empty?) ? nil : p } 
 end
 
 def error_on_missing_parameters(labeled_parameters, error_prefix = "Missing Parameters")
