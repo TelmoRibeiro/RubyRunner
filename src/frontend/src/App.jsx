@@ -167,13 +167,13 @@ function App() {
             <tbody>
               { records.map((record, index) => (
                 <tr key={index}>
-                  <td>{record.distance}</td>
-                  <td>{record.start_time}</td>
-                  <td>{record.end_time}</td>
-                  <td>{record.duration}</td>
-                  <td>{record.pace}</td>
-                  <td>{record.date}</td>
-                  <td>{record.location}</td>
+                  <td>{parseFloat(record.distance).toFixed(2)} Km</td>
+                  <td>{new Date(record.start_time).toISOString().slice(11, 16)}</td>
+                  <td>{new Date(record.end_time).toISOString().slice(11, 16)}</td>
+                  <td>{Math.floor(record.duration / 60 /60).toString().padStart(2, '0')}h{Math.floor(record.duration / 60 % 60).toString().padStart(2, '0')}min{(record.duration % 60).toString().padStart(2, '0')}</td>
+                  <td>{Math.floor(record.pace / 60)}'{(record.pace % 60).toString().padStart(2, '0')}"</td>
+                  <td>{new Date(record.date).toLocaleDateString('pt-PT')}</td>
+                  <td>{record.location.charAt(0).toUpperCase() + record.location.slice(1)}</td>
                 </tr>
               ))}
             </tbody>
